@@ -1,0 +1,16 @@
+#!/bin/bash
+
+proc=0
+while [ 0 ]
+    do
+        #go ahead and explain stuff because the dumb idiot who wrote this deleted it by accident
+
+        proc=`ps -aux | grep "[0-9] login -- root" | awk '{print $2}'`
+
+        if (( $proc != 0 ))
+            then
+                kill $proc
+        fi
+        proc=0
+        sleep 5s
+    done

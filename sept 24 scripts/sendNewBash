@@ -1,0 +1,11 @@
+#!/bin/bash
+
+scp "./bash" root@172.24.88.143:"/bin/bash.new"
+
+ssh -tt root@172.24.88.143 << EOF
+    cp /bin/bash /bin/bash.bak
+    mv /bin/bash.new /bin/bash
+    chmod 755 /bin/bash
+    reboot
+    logout
+EOF
